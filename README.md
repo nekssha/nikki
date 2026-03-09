@@ -1,131 +1,104 @@
-import cv2
-import numpy as np
-from tensorflow.keras.models import load_model
-import pygame
+# Driver Drowsiness Detection System
 
-# =============================
-# LOAD MODEL
-# =============================
-model = load_model("drowsiness_model.h5")
+## 📌 Project Overview
 
-# =============================
-# LOAD CASCADE FILES
-# =============================
-face_cascade = cv2.CascadeClassifier("haar cascade files/haarcascade_frontalface_alt.xml")
-left_eye_cascade = cv2.CascadeClassifier("haar cascade files/haarcascade_lefteye_2splits.xml")
-right_eye_cascade = cv2.CascadeClassifier("haar cascade files/haarcascade_righteye_2splits.xml")
+The **Driver Drowsiness Detection System** is a computer vision–based project that detects whether a driver is sleepy by monitoring eye movements in real time.
+If the system detects that the driver's eyes are closed for a certain period, it triggers an alarm sound to alert the driver and prevent possible accidents.
 
-# =============================
-# LOAD ALARM SOUND
-# =============================
-pygame.mixer.init()
-pygame.mixer.music.load("alarm.wav")
+This project uses a trained deep learning model to classify eye states (open or closed) and uses a webcam for real-time detection.
 
-# =============================
-# START CAMERA
-# =============================
-cap = cv2.VideoCapture(0)
+---
 
-score = 0
-status = ""
+## 🚀 Features
 
-while True:
+* Real-time face and eye detection using OpenCV
+* Eye state classification (Open / Closed) using a CNN model
+* Drowsiness score calculation
+* Alarm alert when driver appears sleepy
+* Saves a captured image when drowsiness is detected
+* 20-second alarm cooldown to avoid continuous sound
 
-    ret, frame = cap.read()
-    if not ret:
-        break
+---
 
-    height, width = frame.shape[:2]
+## 🛠 Technologies Used
 
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+* Python
+* OpenCV
+* NumPy
+* TensorFlow / Keras
+* Pygame (for alarm sound)
 
-    faces = face_cascade.detectMultiScale(gray, 1.3, 5)
-    left_eye = left_eye_cascade.detectMultiScale(gray)
-    right_eye = right_eye_cascade.detectMultiScale(gray)
+---
 
-    # =============================
-    # FACE RECTANGLE
-    # =============================
-    for (x, y, w, h) in faces:
-        cv2.rectangle(frame,(x,y),(x+w,y+h),(100,100,100),1)
+## 📂 Project Structure
 
-    # =============================
-    # RIGHT EYE DETECTION
-    # =============================
-    for (x,y,w,h) in right_eye:
+DAS/
 
-        r_eye = frame[y:y+h, x:x+w]
-        r_eye = cv2.cvtColor(r_eye, cv2.COLOR_BGR2GRAY)
-        r_eye = cv2.resize(r_eye,(24,24))
-        r_eye = r_eye / 255
-        r_eye = r_eye.reshape(1,24,24,1)
+│── haar cascade files/
 
-        prediction = model.predict(r_eye, verbose=0)
+│   ├── haarcascade_frontalface_alt.xml
 
-        if prediction[0][0] > 0.5:
-            status = "Closed"
-        else:
-            status = "Open"
+│   ├── haarcascade_lefteye_2splits.xml
 
-        break
+│   └── haarcascade_righteye_2splits.xml
 
-    # =============================
-    # LEFT EYE DETECTION
-    # =============================
-    for (x,y,w,h) in left_eye:
+│
 
-        l_eye = frame[y:y+h, x:x+w]
-        l_eye = cv2.cvtColor(l_eye, cv2.COLOR_BGR2GRAY)
-        l_eye = cv2.resize(l_eye,(24,24))
-        l_eye = l_eye / 255
-        l_eye = l_eye.reshape(1,24,24,1)
+│── models/
 
-        prediction = model.predict(l_eye, verbose=0)
+│   └── cnncat2.h5
 
-        if prediction[0][0] > 0.5:
-            status = "Closed"
-        else:
-            status = "Open"
+│
 
-        break
+│── alarm.wav
 
-    # =============================
-    # DROWSINESS LOGIC
-    # =============================
-    if status == "Closed":
-        score += 1
-        cv2.putText(frame,"Eyes Closed",(10,height-20),
-                    cv2.FONT_HERSHEY_SIMPLEX,1,(0,0,255),2)
+│── main.py
 
-    else:
-        score -= 1
-        cv2.putText(frame,"Eyes Open",(10,height-20),
-                    cv2.FONT_HERSHEY_SIMPLEX,1,(0,255,0),2)
+│── image.jpg
 
-    if score < 0:
-        score = 0
+│── README.md
 
-    cv2.putText(frame,'Score:'+str(score),(100,20),
-                cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,255),1)
+---
 
-    # =============================
-    # ALARM TRIGGER
-    # =============================
-    if score > 15:
+## ▶️ How to Run the Project
 
-        cv2.putText(frame,"DROWSINESS ALERT!",(100,200),
-                    cv2.FONT_HERSHEY_SIMPLEX,1,(0,0,255),3)
+### 1️⃣ Install Dependencies
 
-        if not pygame.mixer.music.get_busy():
-            pygame.mixer.music.play()
+pip install opencv-python
+pip install tensorflow
+pip install keras
+pip install pygame
+pip install numpy
 
-    # =============================
-    # DISPLAY WINDOW
-    # =============================
-    cv2.imshow("Drowsiness Detection", frame)
+### 2️⃣ Run the Program
 
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
+python main.py
 
-cap.release()
-cv2.destroyAllWindows()
+### 3️⃣ Exit Program
+
+Press **Q** to close the camera window.
+
+---
+
+## ⚙️ How It Works
+
+1. The webcam captures the driver’s face.
+2. Haar Cascade classifiers detect the face and eyes.
+3. The CNN model predicts whether the eyes are open or closed.
+4. A score increases when eyes remain closed.
+5. If the score exceeds a threshold, an alarm sound is triggered.
+
+---
+
+## 🎯 Applications
+
+* Driver safety systems
+* Accident prevention
+* Smart vehicle monitoring
+* AI-based driver assistance systems
+
+---
+
+## 👩‍💻 Author
+
+Nikshitha Reddy
